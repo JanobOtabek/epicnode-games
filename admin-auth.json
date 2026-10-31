@@ -1,0 +1,7 @@
+{
+  "v": 1,
+  "salt": "/WMqvLzdg/7eN0pGS6O5vg==",
+  "iterations": 310000,
+  "hash": "3MwDCkosrRoFnq0xLgXmD4aeGGPlIPX1U7ID6lrTiPc=",
+  "note": "Bu faylda parolning o'zi yo'q, faqat PBKDF2 xeshi. Parolni admin paneldan o'zgartiring."
+}

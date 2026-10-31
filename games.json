@@ -1,0 +1,72 @@
+{
+  "games": [
+    {
+      "id": "shahar-mushti",
+      "title": "Shahar Mushti",
+      "category": "Jang",
+      "tags": [
+        "3D",
+        "Sandbox",
+        "Jang",
+        "Shahar"
+      ],
+      "thumb": "games/shahar-mushti/thumb.jpg",
+      "path": "games/shahar-mushti/index.html",
+      "orientation": "landscape",
+      "featured": true,
+      "added": "2026-10-31",
+      "short": "Katta shahar ko'chalarida musht, to'pponcha, olov va granata bilan GTA uslubidagi 3D jang.",
+      "description": "Shahar Mushti — birinchi shaxs ko'rinishidagi 3D jang o'yini. Siz ko'chalari odamlar, guruhlar va politsiya bilan to'la shaharda o'zingiz xohlagancha harakat qilasiz. Musht va tepish bilan boshlab, to'pponcha, olovpurkagich va granatagacha foydalanish mumkin. Yerda yotgan pichoq, stul, shisha butilka va g'ishtni qo'lga olib uloqtirsa bo'ladi. Ikki rejim bor: Sandbox — erkin shahar, politsiya va tasodifiy janjallar; Battle — shaharda 100 kishi bor va birinchi zarbadan keyin hamma bir-biriga tashlanadi, oxirigacha omon qolish kerak. Bullet-time (sekinlashtirish) va grafika sifatini tanlash imkoniyati kuchsiz kompyuterlarda ham qulay o'ynashga yordam beradi.",
+      "howto": [
+        "O'yin rejimini tanlang: Sandbox yoki Battle.",
+        "Kuchsiz kompyuter yoki telefonda grafika sifatini \"Past\" qiling.",
+        "\"Boshlash\" tugmasini bosing va sichqonchani ekranga bosib qarashni boshqaring.",
+        "Battle rejimida birinchi zarbani bergandan keyin olomon jangi boshlanadi — oxirgisigacha omon qoling."
+      ],
+      "controls": [
+        [
+          "W A S D",
+          "Yurish"
+        ],
+        [
+          "Shift",
+          "Yugurish"
+        ],
+        [
+          "Chap tugma / F",
+          "Hujum"
+        ],
+        [
+          "E",
+          "Narsani olish / uloqtirish"
+        ],
+        [
+          "Space",
+          "Tepish"
+        ],
+        [
+          "1–4 yoki Tab",
+          "Qurol almashtirish"
+        ],
+        [
+          "Q",
+          "Sekinlashtirish (bullet-time)"
+        ],
+        [
+          "P",
+          "Politsiyani yoqish / o'chirish"
+        ],
+        [
+          "M",
+          "Musiqa"
+        ],
+        [
+          "Esc",
+          "Pauza"
+        ]
+      ],
+      "mobile": true,
+      "age": "16+"
+    }
+  ]
+}
