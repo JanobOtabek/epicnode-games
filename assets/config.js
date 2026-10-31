@@ -18,7 +18,8 @@ window.EPICNODE = {
   adFrequencySeconds: 120,
 
   /* --- Admin panel o'yinlarni qayerga saqlaydi (GitHub) --- */
-  github: {
+    analyticsId: "G-EH6FNKT797",
+   github: {
     owner: "JanobOtabek",
     repo: "epicnode-games",
     branch: "main"
