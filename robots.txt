@@ -2,3 +2,5 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /admin-auth.json
+
+Sitemap: https://janobotabek.github.io/epicnode-games/sitemap.xml
