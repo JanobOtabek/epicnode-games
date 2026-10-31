@@ -233,6 +233,20 @@ async function writeCatalog(data, sha, message){
   return apiJson('/contents/games.json', { method:'PUT', body: JSON.stringify(body) });
 }
 
+/* sitemap.xml ni katalogdan qayta yaratish (Google qidiruvi uchun) */
+async function writeSitemap(games){
+  try {
+    const base = location.href.split('#')[0].split('?')[0].replace(/admin\.html$/, '');
+    const day = new Date().toISOString().slice(0,10);
+    const xe = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    const urls = ['', ...games.filter(g => !g.hidden).map(g => 'game.html?id=' + encodeURIComponent(g.id)),
+                  'about.html','contact.html','privacy.html','terms.html'];
+    const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+      urls.map(u => `  <url><loc>${xe(base + u)}</loc><lastmod>${day}</lastmod></url>`).join('\n') + '\n</urlset>\n';
+    await putFile('sitemap.xml', utf8b64(xml), 'Sitemap yangilandi');
+  } catch(e){ console.warn('sitemap yangilanmadi', e); }
+}
+
 function setGhUi(ok, info){
   $('#ghForm').classList.toggle('hidden', ok);
   $('#ghOk').classList.toggle('hidden', !ok);
@@ -286,6 +300,7 @@ $('#glist').addEventListener('click', async e => {
     if (b.dataset.a==='hide') g.hidden = !g.hidden;
     if (b.dataset.a==='feat') { const v=!g.featured; data.games.forEach(x=>x.featured=false); g.featured=v; }
     await writeCatalog(data, sha, `Admin: ${g.title} sozlamasi o'zgardi`);
+    if (b.dataset.a==='hide') await writeSitemap(data.games);
     await refreshList();
   } catch(err){ alert('Xato: ' + err.message); b.disabled=false; }
 });
@@ -363,6 +378,8 @@ $('#addForm').addEventListener('submit', async e => {
     const idx = cur.data.games.findIndex(g => g.id === id);
     if (idx >= 0) cur.data.games[idx] = { ...cur.data.games[idx], ...entry }; else cur.data.games.unshift(entry);
     await writeCatalog(cur.data, cur.sha, `O'yin qo'shildi: ${title}`);
+    logLine('Sitemap yangilanmoqda...');
+    await writeSitemap(cur.data.games);
     logLine('Tayyor ✓');
     addMsg(`"${title}" saytga joylandi. Sayt 1–2 daqiqada yangilanadi.`, 'ok');
     $('#addForm').reset(); $('#thumbPrev').classList.add('hidden'); idTouched = false;
