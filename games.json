@@ -1,6 +1,73 @@
 {
   "games": [
     {
+      "id": "el-clasico-mini",
+      "title": "El Clasico Mini",
+      "category": "Football",
+      "tags": [
+        "Football",
+        "Real Madrid",
+        "Barcelona"
+      ],
+      "thumb": "games/el-clasico-mini/thumb.jpg",
+      "path": "games/el-clasico-mini/index.html",
+      "featured": false,
+      "added": "2026-11-13",
+      "short": "El Clásico — bu Real Madrid va FC Barcelona jamoalari o'rtasidagi afsonaviy qarama-qarshilikka asoslangan 2D o'yin",
+      "description": "O'yin boshida Real Madrid yoki FC Barcelona jamoalaridan birini hamda qiyinlik darajasini tanlab boshlaysiz. Maydonda futbolchilarni boshqarib, to'pni raqib tomon olib o'tasiz, paslar uzatasiz va kuchli zarbalar yo'qizish orqali gollar kiritasiz. O'yinda vaqt chegaralangan bo'lib, mini-xarita yordamida butun maydonni kuzatib borish mumkin. Shuningdek, futbolchining yugurish charchog'i (stamina) mexanikasi ham mavjud.",
+      "howto": [
+        "O'yin boshlangach, klaviaturadagi chap va o'ng strelkalar (← →) orqali o'zingizga yoqqan jamoani tanlang.",
+        "Kerakli qiyinlik darajasini o'rnatish uchun 1, 2 yoki 3 raqamlarini bosing.",
+        "O'yinni boshlash uchun Enter tugmasini bosing.",
+        "Maydonda WASD yoki strelka tugmalari yordamida o'yinchini harakatlantiring.",
+        "Sichqoncha yordamida zarba yo'nalishini yoki pas berish nishonini belgilang.",
+        "To'pni darvozaga kuchliroq tepish uchun Space (Probel) tugmasini bosib turing va kerakli kuch to'planganda qo'yib yuboring.",
+        "Raqibdan to'pni tortib olish uchun F tugmasini bosib turing.",
+        "Hujum paytida jamoadoshingizga pas berish uchun E tugmasini bosing.",
+        "To'pga yaqinroq bo'lgan boshqa o'yinchiga o'tish uchun Q tugmasini bosing.",
+        "O'yin tugagandan so'ng qayta boshlash uchun R tugmasini bosing."
+      ],
+      "controls": [
+        [
+          "WASD / Strelkalar",
+          "Harakat"
+        ],
+        [
+          "Shift",
+          "Yugurish"
+        ],
+        [
+          "F",
+          "Avto to'p olish (ushlab turiladi)"
+        ],
+        [
+          "Q",
+          "O'yinchini almashtirish"
+        ],
+        [
+          "Sichqoncha",
+          "Nishonga olish"
+        ],
+        [
+          "Space",
+          "Zarba berish (bosib turganda quvvat yig'iladi)"
+        ],
+        [
+          "E",
+          "Pas berish"
+        ],
+        [
+          "Enter",
+          "O'yinni boshlash"
+        ],
+        [
+          "R",
+          "Qayta o'ynash (o'yin oxirida)"
+        ]
+      ],
+      "mobile": true
+    },
+    {
       "id": "shahar-mushti",
       "title": "Shahar Mushti",
       "category": "Jang",
