@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roast mashinasi</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#c6ff3d;--ink:#14141f;--pink:#d81b60;--card:#fffdf0;--mint:#2ee6a6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d2b0a;--ink:#e8ffb0;--card:#33481a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1d2b0a;--ink:#e8ffb0;--card:#33481a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:18px/1.4 system-ui,sans-serif;display:flex;align-items:center;justify-content:center;overflow-x:hidden}
+h1{font:400 clamp(26px,7vw,40px)/1.1 'Lilita One',Impact,sans-serif;margin:.2em 0}
+p{margin:.5em 0}
+#hud{position:fixed;left:14px;top:calc(env(safe-area-inset-top,0px) + 10px);font:400 18px 'Lilita One',Impact,sans-serif}
+#stage{width:min(92vw,520px);min-height:320px;text-align:center;background:var(--card);border:4px solid var(--ink);border-radius:18px;box-shadow:8px 8px 0 var(--ink);padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.btn{font:400 22px 'Lilita One',Impact,sans-serif;padding:12px 26px;background:var(--pink);color:#fff;border:4px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);cursor:pointer;margin:8px 4px}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+button:focus-visible,input:focus-visible{outline:4px solid var(--mint);outline-offset:3px}
+input[type=text],#i{font:inherit;padding:10px;border:4px solid var(--ink);border-radius:12px;width:100%;background:#fff;color:#14141f}
+input[type=range]{width:100%}
+.big{font-size:70px;line-height:1}
+.sm{font-size:15px;opacity:.85}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#ar{position:relative;width:100%;height:220px;background:rgba(0,0,0,.08);border-radius:12px;overflow:hidden}
+.tg{position:absolute;width:60px;height:60px;font-size:44px;line-height:1;background:none;border:0;cursor:pointer;padding:0}
+#bar{width:100%;height:34px;border:4px solid var(--ink);border-radius:20px;overflow:hidden;background:#fff}
+#f{display:block;height:100%;width:0;background:var(--mint)}
+#xb{position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 8px);font:400 16px 'Lilita One',Impact,sans-serif;padding:6px 14px;background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:12px;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);max-width:90vw;background:var(--ink);color:var(--card);padding:12px 18px;border-radius:14px;font-weight:600;text-align:center;z-index:9}
+#mt{position:fixed;left:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);font-size:22px;padding:4px 10px;background:var(--card);border:3px solid var(--ink);border-radius:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="hud"></div><button id="xb" style="display:none">Chiqish</button><button id="mt" aria-label="Ovoz">🔊</button>
+<main id="stage"></main>
+<script>
+let AC=null,mute=false;
+function snd(f,d=.12,type='square',v=.06,sl=0){if(mute)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(sl)o.frequency.exponentialRampToValueAtTime(Math.max(40,f+sl),t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(t+d)}catch(e){}}
+const seq=a=>a.forEach(([f,t,d,ty,sl])=>setTimeout(()=>snd(f,d||.15,ty||'square',.07,sl||0),t));
+const sfx={click:()=>snd(660,.07),fail:()=>seq([[300,0,.2,'sawtooth',-100],[250,200,.2,'sawtooth',-100],[200,400,.45,'sawtooth',-120]]),win:()=>seq([[523,0],[659,120],[784,240],[1047,360,.3]]),roast:()=>seq([[392,0,.15,'triangle'],[330,150,.15,'triangle'],[262,300,.35,'triangle',-60]])};
+document.addEventListener('pointerdown',e=>{if(e.target.closest('button'))sfx.click()});
+document.querySelector('#mt').onclick=e=>{mute=!mute;e.target.textContent=mute?'🔇':'🔊'};
+const $=s=>document.querySelector(s),st=$('#stage');
+let tm=[],offs=[],nm='Nomaʼlum',t0=Date.now(),li=0;const S={fail:0,miss:0};
+const later=(f,ms)=>{tm.push(setTimeout(f,ms))};
+const on=(t,e,f)=>{t.addEventListener(e,f);offs.push(()=>t.removeEventListener(e,f))};
+function scene(h){tm.forEach(clearTimeout);tm=[];offs.forEach(f=>f());offs=[];st.innerHTML=h}
+const hud=t=>{$('#hud').textContent='Daraja '+t+'/100';$('#xb').style.display=t>50&&t<100?'block':'none'};
+const bye=(e,h,p,f,ms=2400)=>{(/Dedim|Xato/.test(h)?sfx.fail:/Yutdingiz|Tamom|Uddalading|Axir/.test(h)?sfx.win:sfx.roast)();scene(`<div class="big">${e}</div><h1>${h}</h1><p>${p}</p>`);later(f,ms)};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const L=[l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20];
+function next(){L[li++]()}
+
+function l1(){
+  scene(`<h1>Ismingiz nima?</h1><input id="i" maxlength="20" autocomplete="off"><button class="btn" id="o">Yuborish</button>`);hud(1);
+  const go=()=>{nm=$('#i').value.replace(/[<>&"]/g,'').trim().slice(0,20)||'Nomaʼlum';
+    bye('🧐',`${nm}?`,pick(['Hayotimda bunday ismni eshitmaganman. Ismingiz ham xuddi oʻzingiz kabi: esda qolmaydi.','Ism… ha, ism ekan. Men “xato” deb oʻylagandim.']),next)};
+  $('#o').onclick=go;on($('#i'),'keydown',e=>{if(e.key==='Enter')go()});
+}
+
+function l2(){
+  scene(`<h1>Boshlash tugmasi</h1><p>Faqat bos. Oson-ku?</p><div id="ar"><button id="b" class="btn" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0">BOS</button></div>`);hud(2);
+  const b=$('#b'),a=$('#ar');let n=0;const W=['Yoʻq!','Tutolmaysan','Sekin!','Mayli…'];
+  const fl=()=>{if(n>=4)return;n++;const r=a.getBoundingClientRect();b.style.transform='none';b.style.left=Math.random()*(r.width-b.offsetWidth)+'px';b.style.top=Math.random()*(r.height-b.offsetHeight)+'px';b.textContent=W[n-1]};
+  b.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')fl()});
+  b.addEventListener('pointerdown',()=>{if(n<4)fl();else bye('🙄','Axir bosding','4 marta qochdim, sen esa hali ham sekin. Rahmat, '+nm+'.',next)});
+}
+
+function l3(){
+  let left=S.fail>=2?2:4;
+  scene(`<h1>Qoida</h1><p>${left} soniya hech narsani bosma.</p><div class="big" id="c">${left}</div>`);hud(3);
+  const lose=()=>{S.fail++;bye('😤','Dedim-ku!',pick(['Qoʻlingni stol ostiga qoʻy, '+nm+'.','Bitta qoida. BITTA. Va siz uni buzdingiz, chunki siz shunday odamsiz.','Qoʻling alohida yashayaptimi?']),l3,1800)};
+  const tick=()=>{left--;$('#c').textContent=left;left<=0?bye('🏆','Yutdingiz','Yutuq: “Hech narsa qilmaslik”. Sizning yagona haqiqiy qobiliyatingiz.',next,2800):later(tick,1000)};
+  later(()=>{on(document,'pointerdown',lose);on(document,'keydown',lose);later(tick,1000)},500);
+}
+
+function l4(){
+  const T='Men noobman';
+  scene(`<h1>Yozing: “Men zoʻr oʻyinchiman”</h1><input id="i" autocomplete="off"><p class="sm" id="m"></p><button class="btn" id="o">Tasdiqlash</button>`);hud(4);
+  $('#i').oninput=e=>{e.target.value=T.slice(0,e.target.value.length);$('#m').textContent='Klaviaturangiz haqiqatni biladi.'};
+  $('#o').onclick=()=>bye('📝','Tan oldingiz',`Imzo: “${T}”. Hujjat sudga yuborildi.`,next);
+}
+
+function l5(){
+  const Q=[['7 × 8 = ?',['56','54','58','63'],0],['15 + 27 = ?',['41','42','43','52'],1],['100 − 1 = ?',['101','98','99','9'],2]];
+  let q=0,sc=0;
+  const show=()=>{
+    const[t,o,c]=Q[q];const idx=[0,1,2,3];
+    const draw=()=>{idx.sort(()=>Math.random()-.5);$('#o').innerHTML=idx.map(i=>`<button class="btn" data-i="${i}">${o[i]}</button>`).join('')};
+    scene(`<h1>${t}</h1><div class="row" id="o"></div><p class="sm" id="m">Savol ${q+1}/3. Javoblar qochadi.</p>`);hud(5);
+    draw();const iv=setInterval(draw,900);offs.push(()=>clearInterval(iv));
+    $('#o').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+      const ok=+b.dataset.i===c;if(ok)sc++;clearInterval(iv);$('#o').innerHTML='';
+      $('#m').textContent=ok?pick(['Toʻgʻri. Tasodif, albatta. Siz oʻlamadingiz, shunchaki bosdingiz.','Toʻgʻri! Kalkulyator ham hayron.']):pick(['Notoʻgʻri. Maktab sizni tarbiyalay olmagan. Rasmiy xulosa.','Hatto goʻdak ham biladi.']);
+      later(()=>{q++;q<3?show():bye('🧮',sc+'/3',sc>1?'Ajablanarli. Tasodiflar silsilasi.':'Oʻqituvchingiz hanuz yigʻlaydi.',next,2800)},2200)};
+  };
+  show();
+}
+
+function l6(){
+  scene(`<h1>Aqlingiz yuklanmoqda</h1><div id="bar"><i id="f"></i></div><p class="sm" id="m">0%</p>`);hud(6);
+  let p=0;const R=['Qidirilmoqda…','Hech narsa topilmadi…','Yana qidiramiz…','Bu qanday boʻlishi mumkin?','Topdik! Yoʻq, bu paypoq ekan.'];
+  const run=()=>{p+=2+Math.random()*4;
+    if(p>=100){$('#f').style.width='100%';$('#m').textContent='Xato 404: aql topilmadi.';later(next,2800);return}
+    $('#f').style.width=p+'%';$('#m').textContent=R[Math.min(4,Math.floor(p/20))];later(run,140)};
+  run();
+}
+
+function l7(){
+  let hit=0;
+  scene(`<h1>Nishonni 5 marta ur</h1><p class="sm" id="m">0/5</p><div id="ar"><button id="tg" class="tg" aria-label="nishon">🎯</button></div>`);hud(7);
+  const ar=$('#ar'),tg=$('#tg');
+  const mv=()=>{const r=ar.getBoundingClientRect();tg.style.left=Math.random()*(r.width-60)+'px';tg.style.top=Math.random()*(r.height-60)+'px'};
+  mv();const iv=setInterval(mv,700);offs.push(()=>clearInterval(iv));
+  tg.onclick=e=>{e.stopPropagation();hit++;$('#m').textContent=hit+'/5';mv();if(hit>=5)bye('🎯','Uddalading','Sekin, lekin uddalading. “Sekin” — sizning familiyangiz.',next)};
+  ar.onclick=()=>{S.miss++;$('#m').textContent=pick(['Chetga! Koʻzingiz bormi?','Bu devor edi.','Yana oʻtkazdingiz!','Sichqonchani boshqa odamga bering.'])};
+}
+
+function l8(){
+  let n=0;
+  scene(`<h1>Slayderni 50 ga qoʻying</h1><input type="range" id="r" min="0" max="100" value="0"><div class="big" id="v">0</div><p class="sm" id="m"></p>`);hud(8);
+  const r=$('#r');
+  r.oninput=()=>{$('#v').textContent=r.value};
+  r.onchange=()=>{n++;
+    if(n<4){$('#m').textContent=['Yaqin ham emas.','Yoʻq. Yana.','Siz raqamlarni bilasizmi?'][n-1];r.value=Math.floor(Math.random()*100);$('#v').textContent=r.value}
+    else{r.value=50;$('#v').textContent=50;later(()=>bye('🤷','Mayli','Slayderni ham toʻgʻri qoʻya olmadingiz. Men oʻzim qoʻydim.',next,2600),900)}};
+}
+
+function l9(){
+  scene(`<h1>Cookie fayllar</h1><p>Biz sizning “xursandligingizni” yigʻamiz.</p><div class="row"><button class="btn" id="y" style="font-size:44px;padding:20px 40px">QABUL</button><button id="n" style="font-size:9px">rad</button></div><p class="sm" id="m"></p>`);hud(9);
+  $('#y').onclick=()=>bye('🍪','Rahmat','Qabul qilindi. Maʼlumotingizni hech kim xohlamaydi, shuning uchun uni oʻzimiz oʻchirdik.',next);
+  $('#n').onclick=()=>{$('#m').textContent='Rad etish tugmasi ishlamaydi. U ham sizni tanimaydi.';$('#n').remove()};
+}
+
+function l10(){
+  scene(`<h1>IQ hisoblanmoqda</h1><div class="big" id="v">…</div><p id="m"></p>`);hud(10);
+  const iv=setInterval(()=>{$('#v').textContent=Math.floor(Math.random()*200)},80);offs.push(()=>clearInterval(iv));
+  later(()=>{clearInterval(iv);$('#v').textContent='3';later(()=>{$('#m').textContent='Kartoshkaning IQ si 4. Siz kartoshkadan ham pastsiz.'},600);later(next,4200)},2800);
+}
+
+function l11(){
+  let r=0;const R=['Juda erta! Hali yashil emas edi, shoshqaloq.','Juda sekin! Toshbaqa ham kuladi.','Juda tez! Aldadingiz. Aldash ham yaxshi uddalanmagan.'];
+  const round=()=>{scene(`<h1>Yashil boʻlganda bos</h1><button class='btn' id='z' style='background:#c0392b;min-width:200px;min-height:90px'>KUT…</button><p class='sm' id='m'>${r+1}/3</p>`);hud(11);const z=$('#z');
+    later(()=>{z.style.background='#1a7a45';z.textContent='BOS!'},1500+Math.random()*2000);
+    z.onclick=()=>{$('#m').textContent=R[r];z.disabled=true;r++;later(r<3?round:()=>bye('🏳️','Mayli','Oʻyin buzilgan emas. Muammo sizda.',next,2400),2200)}};
+  round();
+}
+
+function l12(){
+  let t=0;scene(`<h1>Robot emasmisiz?</h1><p>Barcha <b>mashinalarni</b> tanlang.</p><div id='g' style='display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%'></div><p class='sm' id='m'></p><button class='btn' id='o'>Tasdiqlash</button>`);hud(12);
+  for(let i=0;i<9;i++){const b=document.createElement('button');b.style.cssText='font-size:40px;background:none;border:0;cursor:pointer';b.textContent='🥔';b.onclick=()=>{b.textContent=b.textContent==='🥔'?'✅':'🥔'};$('#g').append(b)}
+  const R=['Xato: bu yerda mashina yoʻq, hammasi kartoshka.','Yana xato. Kartoshkani mashina deb oʻlash — sizning darajangiz.','Mayli, siz robotsiz. Lekin eng zaif robot.'];
+  $('#o').onclick=()=>{if(t>=3)return;$('#m').textContent=R[t++];if(t>=3)later(next,2600)};
+}
+
+function l13(){
+  let ad=0;
+  const show=()=>{ad++;let t=5;scene(`<div class='big'>📺</div><h1>Reklama ${ad}/3</h1><p>“Sekin Odamlar Uchun Soat”: 40% chegirma. Sizga mos.</p><button class='btn' id='s' disabled>${t}</button>`);hud(13);
+    const tick=()=>{t--;const s=$('#s');if(t>0){s.textContent=t;later(tick,1000)}else{s.disabled=false;s.textContent='Oʻtkazish'}};later(tick,1000);
+    $('#s').onclick=()=>ad<3?show():bye('🙃','Hazil','Reklama yoʻq edi. Siz 15 soniya shunchaki tikilib turdingiz.',next,2600)};
+  show();
+}
+
+function l14(){
+  let r=0;const C=['Men “bomba” tanladim. Bomba hammasini yutadi.','Men “pitsa” tanladim. Pitsa hammasidan kuchli.','Men “siz yutdingiz” tanladim… lekin ball menga yozildi. Yutqazish sizga yarashadi.'];
+  scene(`<h1>Tosh, qaychi, qogʻoz</h1><div class='row'>${['✊','✌️','✋'].map(x=>`<button class='btn'>${x}</button>`).join('')}</div><p id='m'>Tanlang!</p>`);hud(14);
+  st.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{if(r>=3)return;$('#m').textContent=C[r++];if(r===3)later(next,3200)});
+}
+
+function l15(){
+  let c=0;const ev={5:'Pechenye sizdan xafa.',12:'Pechenye “ey!” dedi.',20:'Katta pechenye keldi. U ham xafa.',28:'Pechenye sizga qarz: 1 000 000 pechenye.',35:'Pechenye telefon qildi: “bas qil”.'};
+  scene(`<h1>Pechenye bos</h1><button id='k' style='font-size:90px;background:none;border:0;cursor:pointer'>🍪</button><div class='big' id='c'>0</div><p class='sm' id='m'>Koʻproq bossangiz, koʻproq pechenye.</p>`);hud(15);
+  $('#k').onclick=()=>{c++;$('#c').textContent=c;if(ev[c])$('#m').textContent=ev[c];if(c===40)bye('😱','Pechenye sizni yedi','Qarshilik ham qilolmadingiz. Pechenye ham sizdan kuchliroq.',next,2800)};
+}
+
+function l16(){
+  const E=['🐸','🍕','🚗','🎈','🦆','🧦'];const s=E.slice().sort(()=>Math.random()-.5).slice(0,5);
+  scene(`<h1>Eslab qoling!</h1><div class='big' style='font-size:44px'>${s.join(' ')}</div><p class='sm'>2 soniya…</p>`);hud(16);
+  later(()=>{const q=s[0];const o=E.slice().sort(()=>Math.random()-.5).slice(0,4);if(!o.includes(q))o[0]=q;o.sort(()=>Math.random()-.5);
+    scene(`<h1>Qaysi biri roʻyxatda <u>birinchi</u> edi?</h1><div class='row'>${o.map(x=>`<button class='btn' data-e='${x}'>${x}</button>`).join('')}</div>`);
+    st.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{const ok=b.dataset.e===q;bye(ok?'🤨':'🐟',ok?'Toʻgʻri':'Notoʻgʻri',ok?'Tasodif. Oltin baliqning xotirasi 3 soniya. Sizniki ham deyarli shuncha.':'Oltin baliq ham eslagan boʻlardi.',next,2800)})},2200);
+}
+
+function l17(){
+  const rules=[['Kamida 8 belgi',v=>v.length>=8],['Katta harf',v=>/[A-Z]/.test(v)],['Raqam',v=>/\d/.test(v)],['Kartoshka emoji 🥔',v=>v.includes('🥔')],['Ismingiz boʻlmasin (u hamma narsani buzadi)',v=>!v.toLowerCase().includes(nm.toLowerCase())],['“!” bilan tugasin',v=>v.endsWith('!')]];
+  scene(`<h1>Parol oʻlab toping</h1><input id='i' autocomplete='off'><div id='rl' style='text-align:left;width:100%;margin-top:8px'></div><div class='row'><button class='btn' id='p'>+🥔</button><button class='btn' id='o' disabled>Davom</button></div>`);hud(17);
+  const chk=()=>{const v=$('#i').value;let ok=true;$('#rl').innerHTML=rules.map(([t,f])=>{const g=f(v);if(!g)ok=false;return `<div>${g?'✅':'❌'} ${t}</div>`}).join('');$('#o').disabled=!ok};chk();
+  $('#i').oninput=chk;$('#p').onclick=()=>{$('#i').value+='🥔';chk()};
+  $('#o').onclick=()=>bye('🔐','Parol qabul qilindi','Zaif. Xuddi egasi kabi.',next);
+}
+
+function l18(){
+  scene(`<h1>Oʻyinni baholang</h1><div class='row' id='s'>${[1,2,3,4,5].map(i=>`<button class='btn' data-i='${i}'>${'⭐'.repeat(i)}</button>`).join('')}</div>`);hud(18);
+  $('#s').onclick=e=>{const b=e.target.closest('button');if(!b)return;bye('⭐','Bahoyingiz: 1 yulduz',`Siz ${b.dataset.i} tanlagansiz, lekin biz oʻzimiz tuzatdik. Sizning fikringiz bizga qiziq emas.`,next,3400)};
+}
+
+function l19(){
+  scene(`<h1>Doʻstlaringiz sizni qanday taʼriflaydi?</h1><div class='row'>${['Sekin','Juda sekin','Toʻxtab qolgan','Doʻstim yoʻq'].map(x=>`<button class='btn'>${x}</button>`).join('')}</div>`);hud(19);
+  st.querySelectorAll('.btn').forEach(b=>b.onclick=()=>bye('📉','Natija','Soʻrovda 1 kishi qatnashdi: siz. Qolganlarga murojaat qildik, hech kim javob bermadi.',next,3400));
+}
+
+function l20(){
+  const need=()=>S.fail>=3?2000:5000;
+  scene(`<h1>Yakuniy sinov</h1><p>Tugmani <b>${need()/1000} soniya</b> bosib turing.</p><div id='bar'><i id='f'></i></div><button class='btn' id='b' style='touch-action:none;user-select:none'>BOSIB TUR</button><p class='sm' id='m'></p>`);hud(20);
+  const b=$('#b');let th=0,iv=0;
+  const stop=()=>{if(!th)return;clearInterval(iv);th=0;S.fail++;$('#f').style.width='0';$('#m').textContent=pick(['Qoʻlingiz qaltiradi. Xuddi irodangiz kabi.','Yana! 5 soniyani ham ushlab turolmaysiz.','Bu oʻyin ham sizdan voz kechdi.'])};
+  b.onpointerdown=e=>{e.preventDefault();th=Date.now();iv=setInterval(()=>{const p=(Date.now()-th)/need();$('#f').style.width=Math.min(100,p*100)+'%';if(p>=1){clearInterval(iv);th=0;bye('👑','Sertifikat tayyor','Qoʻling bor ekan. Afsus, miyang yoʻq.',next,2800)}},50)};
+  b.onpointerup=stop;b.onpointerleave=stop;b.onpointercancel=stop;
+}
+
+const K=[];
+const poll=(h,o,r,e='😐')=>K.push(()=>{scene(`<h1>${h}</h1><div class='row'>${o.map(x=>`<button class='btn'>${x}</button>`).join('')}</div>`);hud(li);st.querySelectorAll('.btn').forEach(b=>b.onclick=()=>bye(e,'Natija',r,next,3600))});
+const forced=(h,T,m,f)=>K.push(()=>{scene(`<h1>${h}</h1><input id='i' autocomplete='off'><p class='sm' id='m'></p><button class='btn' id='o'>Tasdiqlash</button>`);hud(li);$('#i').oninput=e=>{e.target.value=T.slice(0,e.target.value.length);$('#m').textContent=m};$('#o').onclick=()=>bye('📝','Tan oldingiz',`Imzo: “${T}”. ${f}`,li===50?fork:li>=100?end:next,3200)});
+const tap=(em,n,h,ev,f)=>K.push(()=>{let c=0;scene(`<h1>${h}</h1><button id='k' style='font-size:90px;background:none;border:0;cursor:pointer'>${em}</button><div class='big' id='c'>0</div><p class='sm' id='m'></p>`);hud(li);$('#k').onclick=()=>{c++;$('#c').textContent=c;if(ev[c])$('#m').textContent=ev[c];if(c===n)bye(em,'Tamom',f,next,3400)}});
+const flee=(h,W,f)=>K.push(()=>{scene(`<h1>${h}</h1><div id='ar'><button id='b' class='btn' style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0'>BOS</button></div>`);hud(li);const b=$('#b'),a=$('#ar');let n=0;const fl=()=>{if(n>=W.length)return;n++;const r=a.getBoundingClientRect();b.style.transform='none';b.style.left=Math.random()*(r.width-b.offsetWidth)+'px';b.style.top=Math.random()*(r.height-b.offsetHeight)+'px';b.textContent=W[n-1]};b.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')fl()});b.addEventListener('pointerdown',()=>{if(n<W.length)fl();else bye('🙄','Axir tutdingiz',f,next,3200)})});
+const fake=(h,M,f)=>K.push(()=>{scene(`<h1>${h}</h1><div id='bar'><i id='f'></i></div><p class='sm' id='m'></p>`);hud(li);let i=0;const run=()=>{$('#f').style.width=(i+1)/M.length*90+'%';$('#m').textContent=M[i++];i<M.length?later(run,1300):later(()=>bye('📉','Natija',f,next,3600),1300)};run()});
+
+forced('Yozing: “Men eng tezkorman”','Men eng sekinman','Klaviatura rost gapirmoqda.','Ayblov tasdiqlandi.');
+poll('Siz eng koʻp nimada yaxshisiz?',['Hech narsa','Ozgina hech narsa','Juda koʻp hech narsa','Boshqa'],'Hammasi toʻgʻri. Siz hech narsada haqiqatan ham zoʻrsiz.','🏅');
+tap('🥔',30,'Kartoshkani uring',{8:'Kartoshka yigʻlayapti.',18:'U sizdan kuchliroq.',25:'Kartoshka advokat chaqirdi.'},'Kartoshka sizni sudga berdi. Yutqazdingiz. Oldin ham shunday edi.');
+flee('Yutuqni qoʻlga oling',['Yoʻq!','Hali emas!','Sizga yutuq yoʻq!','Mayli…'],'Qoʻlga oldingiz. Yutuq bekor qilindi, chunki siz juda sekinsiz.');
+fake('Yutuqlaringiz hisoblanmoqda',['Topildi: 0','Qayta sanaymiz: 0','Kalkulyatordan soʻradik: u kuldi','Eʼtiroz bildirdik: rad etildi'],'Jami yutuq: 0. Sizning sevimli raqamingiz.');
+poll('Siz kimga oʻxshaysiz?',['Aqlli odamga','Kartoshkaga','Paypoqqa','Oʻchgan routerga'],'Hammasi toʻgʻri. Faqat birinchisi emas.');
+forced('Yozing: “Men hammasini bilaman”','Men hech narsa bilmayman','Klaviatura yana rost gapirdi.','Hujjat tasdiqlandi.');
+poll('Dunyodagi eng sekin narsa nima?',['Toshbaqa','Salyangoz','Siz','Internet'],'Qaysi javobni tanlamang, toʻgʻrisi: “Siz”.');
+tap('🐌',25,'Salyangozni quvib yeting',{5:'Salyangoz sizdan tezroq.',12:'U sizni quvib oʻtdi.',20:'Salyangoz kuldi.'},'Salyangoz yutdi. Salyangozga yutqazdingiz.');
+fake('Doʻstlaringiz yozyapti…',['Kimdir yozyapti…','Yoʻq, xato.','Yana tekshiramiz…','Hech kim yozmayapti.'],'Sizga hech kim yozmadi. Hech kim.');
+poll('Oxirgi marta qachon gʻalaba qozongansiz?',['Hech qachon','Bolaligimda','Kecha','Eslolmayman'],'Hech biri toʻgʻri emas. Siz hech qachon yutmagansiz.');
+flee('Qochgan tugma 2.0',['Ha-ha!','Sekin!','Bolalar ham tutardi!','Bor, yigʻla!'],'Tutdingiz. Oʻzingizni gʻolib deb oʻylamang.');
+poll('Ustozingiz siz haqingizda nima deydi?',['Qobiliyatli','Tirishqoq','Kech qoladi','Kim?'],'U sizni eslay olmadi. Siz “Kim?” deb yozildingiz.');
+tap('🎈',20,'Sharni puflang',{6:'Shar charchadi.',14:'Shar qoʻrqmoqda.'},'Shar sizning nafasingiz hidini sezdi va yorildi.');
+fake('Sertifikat bekor qilinmoqda',['Sertifikat topildi','Bekor qilish…','Sabab: “siz”','Rad etish: imkonsiz'],'Sertifikat bekor qilindi. Sizning ismingiz ham.');
+forced('Yozing: “Men yutaman”','Men yutqazaman','Bashorat sizning oʻzingizdan.','Hammasi aniq.');
+poll('Sizni nima yigʻlatadi?',['Qizil piyoz','Reklama','Haqiqat','Natijangiz'],'Hammasi. Eng koʻp esa natijangiz.','😭');
+tap('🍌',15,'Bananni tozalang',{5:'Qobigʻi qiyin.',10:'Ichida hech narsa yoʻq.'},'Banan boʻsh edi. Xuddi oʻyin tarixingiz kabi.');
+poll('Sizga nima yetishmaydi?',['Aql','Tezlik','Omad','Hammasi'],'Toʻgʻri javob: “Hammasi”. Tabriklaymiz.');
+flee('Tugmani tuting',['Tutolmaysiz','Uyalmaysizmi?','Sust!','Mayli, qoʻlga tushdim'],'Uddaladingiz. Qoʻl bor ekan. Miya hali topilmagan.');
+fake('Hayotingiz tahlil qilinmoqda',['Ish: topilmadi','Maqsad: yoʻq','Natija: oʻyin bilan kun oʻtkazish','Tavsiya tayyorlanmoqda…'],'Tavsiya: chiqib, koʻchaga chiqing. Kech emas. Balki.');
+poll('Oxirgi marta qachon kulgansiz?',['Hozir','Kecha','Eslolmayman','Mendan kulishdi'],'Oxirgisi toʻgʻri. Biz sizdan kuldik.','😂');
+forced('Qasam iching: “Men boshqa oʻynamayman”','Men yana oʻynayman','Klaviatura sizni yaxshi taniydi.','Qasam sizning oʻzingizdan.');
+tap('🧱',30,'Devorni buzing',{10:'Devor qattiq.',20:'Siz yumshoqsiz.'},'Devor buzilmadi. Siz ham.');
+poll('Qaysi darajada eng koʻp qiynaldingiz?',['1','5','20','Hammasida'],'Toʻgʻri javob: “Hammasida”. Biz bilardik.');
+fake('Natijalar butun dunyoga yuborilmoqda',['Yuborilmoqda…','Oluvchi: hech kim','Ochildi: 0 marta','Taʼsir: yoʻq'],'Natija yuborildi. Hech kim ochmadi. Ajablanmadik.');
+poll('Oxirgi soʻz?',['Kechirasiz','Men aybdorman','Roast yoqdi','Hech nima'],'Qabul qilindi. Aybingiz tan olindi.');
+tap('❤️',10,'Yurakni bosing',{3:'Yurak: “tegma”.',7:'Yurak: “yetar”.'},'Yurak ketib qoldi. Hamma ketadi.');
+poll('Haqiqiy gap:',['Men yaxshi odamman','Men tirishqoqman','Men ahmoq emasman','Men yutdim'],'Siz yaxshi odamsiz. Chin dildan. Hazil, siz noobsiz.','🥹');
+forced('Yakuniy qasam: “Men oʻyinni yengdim”','Oʻyin meni yengdi','Oxirgi roast ham tayyor.','Oʻyin tugadi.');
+L.push(...K);K.length=0;
+
+const EX=['Chiqish tugmasi ishlamayapti: u siz bilan gaplashishni xohlamaydi.','Xato 418: men choynakman.','Chiqish uchun avval 1 000 000 marta kuling.','Eshik qulflangan. Kalit: sizning obroʻyingiz.','Chiqish tugmasi hozir tushlikda.','Siz chiqmoqchi emassiz. Biz shunday deb belgiladik.','Ruxsat yoʻq. Sabab: roast hali tugamadi.','Tugma sizdan uyaldi va yashirindi.','Chiqish: 404. Siz ham.','“Chiqish” soʻzini notoʻgʻri yozdingiz.','Chiqish uchun parol kerak. Parol: “Men noobman”.','Siz ketolmaysiz. Hazil emas. Hazil.'];
+let exi=0;
+$('#xb').onclick=()=>{const t=document.createElement('div');t.className='toast';sfx.fail();t.textContent=EX[exi++%EX.length];document.body.append(t);setTimeout(()=>t.remove(),2600)};
+function fork(){
+  scene(`<div class='big'>🏁</div><h1>50 daraja tugadi!</h1><p>Tabriklaymiz, ${nm}. Endi tanlang.</p><div class='row'><button class='btn' id='c1'>Chiqish</button><button class='btn' id='c2'>Davom etish</button></div>`);
+  $('#hud').textContent='50/100';
+  $('#c1').onclick=()=>bye('👋','Xayr!','Siz chiqdingiz. Hammasi boshidan boshlanadi.',()=>{li=0;S.fail=0;S.miss=0;t0=Date.now();next()},2800);
+  $('#c2').onclick=()=>bye('😈','Siz oʻzingiz tanladingiz','Endi 100-darajagacha chiqolmaysiz. Biz ogohlantirdik. Oʻzingiz bosdingiz.',next,3400);
+}
+const wait=(n,h,f)=>K.push(()=>{let left=n;scene(`<h1>${h}</h1><p>${left} soniya hech narsani bosma.</p><div class='big' id='c'>${left}</div>`);hud(li);const lose=()=>{S.fail++;bye('😤','Dedim-ku!',pick(['Qoʻlingiz sizga boʻysunmaydi.','Hech narsa qilish ham sizga qiyin.','Yana! Bu rekord.']),()=>{li--;next()},1800)};const tick=()=>{left--;$('#c').textContent=left;left<=0?bye('🏆','Yutdingiz',f,next,3000):later(tick,1000)};later(()=>{on(document,'pointerdown',lose);on(document,'keydown',lose);later(tick,1000)},500)});
+const hit=(n,h,f)=>K.push(()=>{let c=0;scene(`<h1>${h}</h1><p class='sm' id='m'>0/${n}</p><div id='ar'><button id='tg' class='tg'>🎯</button></div>`);hud(li);const ar=$('#ar'),tg=$('#tg');const mv=()=>{const r=ar.getBoundingClientRect();tg.style.left=Math.random()*(r.width-60)+'px';tg.style.top=Math.random()*(r.height-60)+'px'};mv();const iv=setInterval(mv,550);offs.push(()=>clearInterval(iv));tg.onclick=e=>{e.stopPropagation();c++;$('#m').textContent=c+'/'+n;mv();if(c>=n)bye('🎯','Tamom',f,next,3000)};ar.onclick=()=>{$('#m').textContent=pick(['Chetga!','Yana oʻtkazdingiz.','Bu devor.','Koʻzoynak taqing.'])}});
+
+forced('Yozing: “Men chiqishni xohlamayman”','Men chiqolmayman','Qulf yopildi.','Eshik yopiq.');
+poll('Chiqish tugmasi qayerda?',['Yuqorida','Pastda','Chap tomonda','Yoʻq'],'Toʻgʻri javob: “Yoʻq”. U ham sizdan qochdi.');
+tap('🔑',25,'Kalitni toping (bosing)',{8:'Bu kalit emas, paypoq.',16:'Kalit sizdan yashirinmoqda.',22:'Kalit kuldi.'},'Kalit topildi! Lekin u boshqa eshikniki edi.');
+fake('Chiqish tayyorlanmoqda',['Chiqish: 10%','Chiqish: 10%','Chiqish: 10%','Chiqish: bekor qilindi'],'Chiqish bekor qilindi. Sabab: kimdir kulib yubordi.');
+flee('Chiqish tugmasini tuting',['Yoʻq!','Bu chiqish emas!','Qayerga?','Mayli…'],'Tutdingiz, lekin u “Davom etish” ekan.');
+hit(7,'Chiqish eshigini nishonga oling','Nishonni urdingiz, eshik esa yopiq qoldi.');
+poll('Nima uchun hali shu yerdasiz?',['Qiziq','Ishim yoʻq','Chiqolmayapman','Siz kulyapsiz'],'Barcha javoblar toʻgʻri. Ayniqsa “ishim yoʻq”.');
+wait(4,'Sabr qiling','Sabr qildingiz. Tabriklaymiz, bu sizning yagona yutugʻingiz.');
+forced('Yozing: “Meni ketishga qoʻyib yuboring”','Meni qoldiring, men yaxshi koʻraman','Murojaat qabul qilindi.','Rad etildi.');
+tap('🔨',20,'Eshikni sindiring',{6:'Eshik kuldi.',12:'Bolgʻa sizdan afsuslandi.',17:'Eshik shishadan ekan, lekin sindirmadi.'},'Eshik sindi. Orqasida yana eshik bor. Va yana.');
+poll('Oxirgi marta qachon uxlagansiz?',['Kecha','Ertalab','Eslolmayman','Uxlamaganman'],'Natijangiz buni koʻrsatib turibdi.');
+fake('Internet tezligi tekshirilmoqda',['Yuklash: 0 Mb/s','Yuborish: 0 Mb/s','Ping: kimdir kuldi','Sabab: siz ulangansiz'],'Tezlik: sizning tezligingizga mos.');
+flee('Tugma 3.0',['Yoʻq!','Sekinroq!','Ha-ha!','Qoʻlingiz bormi?'],'Qoʻlga oldingiz. Mukofot: yana bitta daraja.');
+hit(8,'Nishonlar koʻpayib ketdi','Urdingiz. Nishon sizni kechirdi. Biz esa yoʻq.');
+poll('Sizni kim kutyapti?',['Doʻstlarim','Oilam','Hech kim','Pitsa'],'Pitsa ham kutmayapti. U sovib qoldi.');
+forced('Yozing: “Men ketishga tayyorman”','Men ketishga qoʻrqaman','Qoʻrquv qayd etildi.','Hujjat tayyor.');
+wait(5,'Jimjit turing','Jimjit turdingiz. Hech kim bunday qila olmaydi. Haqiqatan: hech kim.');
+tap('🥁',30,'Barabanni uring',{10:'Qoʻshnilar shikoyat qildi.',20:'Baraban yorildi, tovush qoʻshnida davom etdi.'},'Siz juda ritmiksiz. Ritmni boshqa odamdan oʻrganing.');
+fake('Mukofot tayyorlanmoqda',['Mukofot: topildi','Mukofot: yoʻqoldi','Qidirilmoqda…','Mukofot sizdan qochdi'],'Mukofot yoʻq. Faqat yana daraja.');
+poll('Hozir nima qilyapsiz?',['Oʻynayapman','Vaqt oʻtkazayapman','Roast yeyapman','Hammasi'],'Hammasi. Va hammasida yutqazdingiz.');
+flee('Hayotingiz maʼnosini tuting',['Yoʻq!','Bu yerda emas!','Tutolmaysiz','Mayli…'],'Tutdingiz. Maʼno: “Kerak emas”.');
+forced('Yozing: “Roast menga yoqmayapti”','Roast menga juda yoqyapti','Ha, ha, yoqyapti.','Qabul qilindi.');
+hit(9,'Yana nishon','Barakalla. Bunga boshqalar 3 soniya sarflaydi.');
+poll('Siz ketsangiz, nima boʻladi?',['Hech narsa','Hamma xursand boʻladi','Oʻyin yigʻlaydi','Siz yutasiz'],'Toʻgʻri javob: “Hech narsa”. Hech kim sezmaydi.');
+tap('🍕',20,'Pitsani yeng',{5:'Pitsa sovuq.',12:'Pitsa sizdan xafa.',18:'Pitsa kuldi.'},'Pitsa tugadi. Yolgʻizlik qoldi.');
+fake('Doʻstlik soʻrovi yuborilmoqda',['Yuborilmoqda…','Qabul qilindi? Yoʻq.','Rad etildi','Qaytarilmoqda'],'Hech kim soʻrovni qabul qilmadi. Hatto robot.');
+wait(6,'Oʻzingizni ushlab turing','Ushlab turdingiz. Endi ushlang… hech narsani.');
+forced('Yozing: “Men yaxshi oʻyinchiman”','Men eng yomon oʻyinchiman','Dalil keltirildi.','Dalil sudga yuborildi.');
+poll('Eng yomon xususiyatingiz?',['Sekinligim','Sabrsizligim','Mening hammam','Siz-ku bilasiz'],'Biz bilamiz. Va yozib ham qoʻydik.');
+flee('Gʻurur tugmasi',['Gʻurur ketdi!','Yoʻq!','U yerda emas!','Mayli…'],'Gʻururni tutdingiz. U ham sizni tashlab ketdi.');
+tap('💡',20,'Fikringiz bormi? (bosing)',{7:'Fikr yoʻq.',14:'Fikr qidirilmoqda.'},'Fikr topilmadi. Faqat “…” qoldi.');
+hit(10,'Yana-yana nishon','Barcha nishonlar tugadi. Siz ham.');
+fake('Gʻururingiz tekshirilmoqda',['Gʻurur: 12%','Gʻurur: 7%','Gʻurur: 2%','Gʻurur: yoʻq'],'Gʻurur topilmadi. U allaqachon chiqib ketgan.');
+poll('Eng katta yutugʻingiz?',['Hech narsa','Oʻyinni boshlash','Roast yeyish','Hamma narsa'],'Toʻgʻri javob: “Roast yeyish”. Mukofot: yana roast.');
+forced('Yozing: “Men boshqa oʻynamayman”','Men yana oʻynayman','Bu sizning ovozingiz.','Ovoz hisobga olindi.');
+wait(7,'Eng uzun jimlik','Yetti soniya. Rekord: eng boʻsh yetti soniya.');
+tap('🎻',25,'Skripka chaling',{8:'Hamma quloqlarini yopdi.',16:'Itlar uldi.',22:'Qoʻshnilar politsiyani chaqirdi.'},'Siz juda “ijodkorsiz”. Ayniqsa quloqlar uchun.');
+fake('Chiqish tugmasi yoʻqolgan',['Qidirilmoqda…','Topildi?','Yoʻq. Paypoq.','Qidiruv bekor qilindi'],'Chiqish tugmasi topilmadi. U sizdan qochgan.');
+poll('Keyingi daraja qanday boʻladi?',['Oson','Qiyin','Oʻzgacha','Xuddi shunday'],'Toʻgʻri javob: “Xuddi shunday”. Roast baribir yoqadi.');
+flee('Oxirgi qochish',['Yoʻq!','Hali yoʻq!','Siz bunga yetmaysiz!','Mayli, mayli…'],'Tutdingiz. Faqat 10 daraja qoldi.');
+hit(10,'Nishon: bosqichma-bosqich','Tamom. Qoʻlingiz hali tirik, bu yaxshi.');
+forced('Yozing: “Men eng zoʻrman”','Men eng sekin va eng sodiqman','Sodiqlik qayd etildi.','Sodiqlik uchun rahmat.');
+poll('Oʻyin sizni nima uchun qiynadi?',['Ayb mendan','Ayb oʻyindan','Ayb hammadan','Siz bilasiz'],'Toʻgʻri javob: ayb sizdan. Hamisha.');
+tap('💔',10,'Yurakni tuzating',{3:'Yurak: “tegma”.',7:'Yurak: “ketdim”.'},'Yurak tuzalmadi. Lekin siz urinib koʻrdingiz. Bu hisoblanmaydi.');
+wait(5,'Oxirgi sabr','Siz hali ham shu yerdasiz. Kimdir sizni hurmat qiladi. Biz emas.');
+fake('Yakuniy hisob tayyorlanmoqda',['Daraja: 95','Qiynalganlar: 1','Kulganlar: hamma','Hisob tayyor'],'Hisob: oʻyin 100, siz 0.');
+poll('Siz kimsiz?',['Qahramon','Noob','Kartoshka','Hammasi'],'Hammasi. Lekin eng yaxshisi: kartoshka.');
+hit(12,'Oxirgi nishonlar','Siz buni uddaladingiz. Haqiqiy mashaqqat.');
+flee('Tugmani tuting: 99',['99!','Yoʻq!','Hali yoʻq!','Mayli…'],'Bitta daraja qoldi. Chiqish eshigi ochiladi… deb oʻylaysiz.');
+forced('Chiqish uchun yozing: “Men chiqishni xohlayman”','Men hech qachon chiqmayman','Oxirgi klaviatura gapi.','Siz chiqdingiz. Hazil: hech kim chiqmaydi.');
+L.push(...K);
+
+function end(){sfx.win();
+  const s=Math.round((Date.now()-t0)/1000);
+  scene(`<div class="big">📜</div><h1>Sertifikat</h1><p><b>${nm}</b>: Eng Sekin Noob</p><p class="sm">Oʻyin vaqti: ${s} soniya. Qochgan tugma: 4 marta. “Dedim-ku”: ${S.fail} marta. Nishondan chetga: ${S.miss} marta. Oʻyin sizni sevadi (yolgʻon).</p><button class="btn" id="r">Qayta oʻynash</button>`);
+  $('#hud').textContent='Tugadi';
+  $('#r').onclick=()=>{li=0;S.fail=0;S.miss=0;t0=Date.now();next()};
+}
+next();
+</script>
+</body>
+</html>
