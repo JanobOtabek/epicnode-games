@@ -1,6 +1,45 @@
 {
   "games": [
     {
+      "id": "roast-mashinasi",
+      "title": "Roast mashinasi",
+      "category": "Hazil",
+      "tags": [
+        "Hazil",
+        "Roast",
+        "Troll",
+        "Brauzer",
+        "Matnli"
+      ],
+      "thumb": "games/roast-mashinasi/thumb.jpg",
+      "path": "games/roast-mashinasi/index.html",
+      "featured": false,
+      "added": "2026-11-21",
+      "short": "100 bosqichli hazil o‘yin: u sizni roast qiladi, siz esa chiqolmaysiz.",
+      "description": "Roast mashinasi: sizni boshidan oxirigacha masxara qiladigan hazil o‘yin.\nQochadigan tugmalar, \"haqiqatni yozadigan\" klaviatura va kutilmagan tuzoqlar sizni kutmoqda.\n50-bosqichdan keyin \"Chiqish\" yoki \"Davom etish\"ni tanlaysiz, davom etsangiz 100-bosqichgacha chiqolmaysiz.",
+      "howto": [
+        "Ismingizni yozib, \"Yuborish\"ni bosing.",
+        "Har bosqichdagi topshiriqni bajaring: bosing, yozing yoki hech narsa qilmang.",
+        "50-bosqichdan keyin chiqish yoki davom etishni tanlang.",
+        "100-bosqichga yetsangiz, chiqish tugmasi ishlaydi."
+      ],
+      "controls": [
+        [
+          "Sichqoncha / Barmoq",
+          "Bosish"
+        ],
+        [
+          "Klaviatura",
+          "Yozish"
+        ],
+        [
+          "Enter",
+          "Tasdiqlash"
+        ]
+      ],
+      "mobile": true
+    },
+    {
       "id": "el-clasico-mini",
       "title": "El Clasico Mini",
       "category": "Football",
